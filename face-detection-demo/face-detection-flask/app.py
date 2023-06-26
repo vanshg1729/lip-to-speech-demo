@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask_cors import CORS
 from markupsafe import escape
 import matplotlib.pyplot as plt
 
@@ -7,6 +8,7 @@ from detector import numpy_array_to_dataurl
 from detector import base64_to_image, image_to_base64
 
 app = Flask(__name__)
+CORS(app)
 # ref : https://python.plainenglish.io/real-time-image-processing-using-websockets-and-flask-in-python-and-javascript-97fb4a0a764f
 
 @app.route("/")

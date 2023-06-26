@@ -49,8 +49,8 @@ screenshotButton.addEventListener('click', async () => {
     console.log('You clicked the button')
     const dataurl = await takeScreenshot()
     var imageElement = document.getElementById('imageElement')
-    let processed_dataurl = undefined
-    // processed_dataurl = await sendScreenshot(dataurl)
+    // let processed_dataurl = undefined
+    processed_dataurl = await sendScreenshot(dataurl)
 
     if (processed_dataurl) {
         imageElement.src = processed_dataurl
@@ -61,11 +61,11 @@ screenshotButton.addEventListener('click', async () => {
     imageElement.length = 500
 })
 
-api.addEventListener('videoConferenceJoined', () => {
-    setInterval(function () {
-        screenshotButton.click()
-    }, 30)
-})
+// api.addEventListener('videoConferenceJoined', () => {
+//     setInterval(function () {
+//         screenshotButton.click()
+//     }, 30)
+// })
 
 // Next steps
 // display the screenshot
