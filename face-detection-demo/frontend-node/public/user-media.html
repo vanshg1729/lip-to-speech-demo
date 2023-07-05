@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>getUserMedia() capture demo</title>
+    </head>
+    <body>
+        <div class="contentarea">
+            <h1>
+                MDN - navigator.mediaDevices.getUserMedia(): Still photo capture
+                demo
+            </h1>
+            <div class="camera">
+                <video id="video">Video stream not available.</video>
+                <button id="startbutton">Take photo</button>
+            </div>
+            <canvas id="canvas"> </canvas>
+            <div class="output">
+                <img
+                    id="photo"
+                    alt="The screen capture will appear in this box."
+                />
+            </div>
+        </div>
+
+        <script src="./user-media.js"></script>
+    </body>
+</html>
