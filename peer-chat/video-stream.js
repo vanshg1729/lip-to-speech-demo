@@ -37,7 +37,7 @@ let startVideoDisplay = async () => {
 
 let getVideoStream = async () => {
     await startup()
-    let intervalId = setInterval(displayPicture, 100)
+    let intervalId = setInterval(displayPicture, 30)
 
     // Context is required before capturing stream (firefox bug)
     outputCanvas.getContext('2d')
