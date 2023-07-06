@@ -5,7 +5,7 @@ let recording = document.getElementById('recording');
 let recordButton = document.getElementById('recordButton');
 let discardButton = document.getElementById('discardButton');
 let saveButton = document.getElementById('saveButton');
-let downloadButton = document.getElementById('downloadButton');
+// let downloadButton = document.getElementById('downloadButton');
 let paragraphElement = document.getElementById('paragraph');
 let recordingSymbol = document.getElementById('recordingSymbol');
 const outputDiv = document.getElementById('output');
@@ -31,7 +31,7 @@ let isListening = false;
 let readWords = [];
 let globTime = new Date().getTime();
 for (let i = 0; i < 1000; i++) {
-    readWords.push(globTime + 1000000); // + 1000000
+    readWords.push(globTime + 100000000); // + 100000000 just a nice big number
 }
 let highlightParagraph = (paragraph, currentWord, nonLowerCase) => {
     let nonCase = nonLowerCase.split(' ');
@@ -42,12 +42,11 @@ let highlightParagraph = (paragraph, currentWord, nonLowerCase) => {
     let currTime = new Date().getTime();
     for (let word of words) {
         if ((word === currentWord || word === currentWord + '.' || word === currentWord + ',' || word === currentWord + '?') && readWords[count] + 2000 > currTime && check === false) {
-            console.log(nonCase[count], "non case")
             highlightedParagraph += `<span class="highlighted-word">${nonCase[count]}</span> `;
             readWords[count] = new Date().getTime(); // time when word was read
             check = true;
         } else {
-            highlightedParagraph += word + ' ';
+            highlightedParagraph += nonCase[count] + ' ';
         }
         count++;
     }
@@ -63,7 +62,7 @@ let init = async () => {
     try {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         preview.srcObject = stream;
-        downloadButton.href = stream;
+        // downloadButton.href = stream;
         preview.captureStream = preview.captureStream || preview.mozCaptureStream;
 
         await new Promise((resolve) => {
@@ -111,22 +110,21 @@ let stopRecorder = (recorderToStop) => {
     recordingSymbol.classList.add('hidden');
 };
 
-let startRecording = async () => {
+let startRecording = async () => { // this has the wrong naming
     try {
         let recordedChunks = await recordStream(preview.captureStream(), recordingTimeMS);
         console.log(`startRecording(): Recording has stopped`);
 
         let recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
         recording.src = URL.createObjectURL(recordedBlob);
-        downloadButton.href = recording.src;
-        downloadButton.download = 'RecordedVideo.webm';
-
-        if (currentParagraphIndex < paragraphs.paragraphs.length) {
-            paragraphElement.textContent = paragraphs.paragraphs[currentParagraphIndex];
-            currentParagraphIndex++;
-        } else {
-            paragraphElement.textContent = 'All paragraphs have been completed.';
-        }
+        // downloadButton.href = recording.src;
+        // downloadButton.download = 'RecordedVideo.webm';
+        // if (currentParagraphIndex < paragraphs.paragraphs.length) {
+        //     paragraphElement.textContent = paragraphs.paragraphs[currentParagraphIndex];
+        //     currentParagraphIndex++;
+        // } else {
+        //     paragraphElement.textContent = 'All paragraphs have been completed.';
+        // }
     } catch (error) {
         if (error.name === 'NotFoundError') {
             console.log(`Camera or Microphone not found. Can't Record`);
@@ -140,7 +138,6 @@ let stopRecording = () => {
     document.getElementsByClassName('hidden-buttons1')[0].style.display = 'none';
     document.getElementsByClassName('hidden-buttons2')[0].style.display = 'block';
     stopRecorder(recorder);
-    console.log(readWords, "heheh");
 };
 
 // Handle the recognition result
@@ -163,7 +160,6 @@ recognition.onresult = function (event) {
     outputDiv.innerHTML += '<span style="color: gray;">' + interimTranscript + '</span>';
     let spokenWord = interimTranscript.split(' ').pop().toLowerCase();
     let paragraph = paragraphElement.textContent.toLowerCase();
-    console.log(spokenWord, "spoken word")
     paragraphElement.innerHTML = highlightParagraph(paragraph, spokenWord, paragraphElement.textContent);
 }
 
@@ -189,7 +185,6 @@ window.addEventListener('load', async () => {
                     // asr stuff
                     recognition.start();
                     isListening = true;
-                    startTime = Date.now();
 
                 } else {
                     recordButton.textContent = 'Start Recording';
@@ -199,8 +194,6 @@ window.addEventListener('load', async () => {
                     // asr stuff
                     recognition.stop();
                     isListening = false;
-
-
                 }
             },
             false
@@ -221,6 +214,12 @@ window.addEventListener('load', async () => {
             () => {
                 document.getElementsByClassName('hidden-buttons1')[0].style.display = 'block';
                 document.getElementsByClassName('hidden-buttons2')[0].style.display = 'none';
+                if (currentParagraphIndex < paragraphs.paragraphs.length) {
+                    paragraphElement.textContent = paragraphs.paragraphs[currentParagraphIndex];
+                    currentParagraphIndex++;
+                } else {
+                    paragraphElement.textContent = 'All paragraphs have been completed.';
+                }
             },
             false
         );
