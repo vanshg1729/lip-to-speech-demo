@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Jitsi Video Capture</title>
+    </head>
+    <body>
+        <h1>Jitsi Video Capture</h1>
+        <div id="meet-container"></div>
+
+        <div class="contentarea">
+            <div class="camera">
+                <h4> Original Video</h4>
+                <video id="video">Video Stream not available</video>
+                <button id="recordbutton">Start Recording</button>
+            </div>
+            
+            <h4> Canvas without any processing</h4>
+            <h4 id="picture-number">Picture Number = 0</h2>
+            <canvas id="canvas"></canvas>
+
+            <div class="output">
+                <h4 id="processed-number">Processed Image Number = 0</h4>
+                <img
+                    id="photo"
+                    alt="The screen capture will appear in this box"
+                />
+            </div>
+        </div>
+
+        <script src="https://meet.jit.si/external_api.js"></script>
+        <script src="take-picture.js"></script>
+    </body>
+</html>
