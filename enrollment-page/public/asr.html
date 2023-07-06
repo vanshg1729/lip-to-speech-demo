@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ASR using JavaScript</title>
+  </head>
+  <body>
+    <button id="startButton">Start ASR</button>
+    <div id="output"></div>
+    <div id="speed"></div>
+
+    <script>
+      // Get references to the button and output elements
+      const startButton = document.getElementById('startButton');
+      const outputDiv = document.getElementById('output');
+      const speedDiv = document.getElementById('speed');
+
+      // Create a SpeechRecognition object
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+
+      // Set properties for the SpeechRecognition object
+      recognition.lang = 'en-US'; // Set the language
+      recognition.continuous = true; // Enable continuous speech recognition
+      recognition.interimResults = true; // Enable interim results for live updates
+
+      // Start/stop the recognition
+      let isListening = false;
+      let startTime, endTime;
+      let speakingSpeed = 0;
+
+      startButton.addEventListener('click', function() {
+        if (isListening) {
+          recognition.stop();
+          startButton.innerHTML = 'Start ASR';
+          isListening = false;
+        } else {
+          recognition.start();
+          startButton.innerHTML = 'Stop ASR';
+          isListening = true;
+          startTime = Date.now();
+        }
+      });
+
+      // Handle the recognition result
+      recognition.onresult = function(event) {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        // Combine interim and final transcripts
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        // Display live text
+        outputDiv.innerHTML = finalTranscript;
+        outputDiv.innerHTML += '<span style="color: gray;">' + interimTranscript + '</span>';
+
+        // Update speaking speed
+        endTime = Date.now();
+        const elapsedTime = (endTime - startTime) / 1000; // Convert to seconds
+        speakingSpeed = Math.round(finalTranscript.split(' ').length / elapsedTime);
+      }
+
+      // Update speaking speed continuously
+      setInterval(function() {
+        if (isListening) {
+          speedDiv.innerHTML = 'Speaking Speed: ' + speakingSpeed + ' words per second';
+        }
+      }, 1000);
+
+      // Handle errors
+      recognition.onerror = function(event) {
+        console.error('ASR error:', event.error);
+      }
+    </script>
+  </body>
+</html>
