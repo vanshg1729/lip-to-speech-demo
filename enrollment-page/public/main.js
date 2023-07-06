@@ -1,17 +1,59 @@
 import paragraphs from './paragraphs.json' assert { type: "json" };
 
-
 let preview = document.getElementById('preview');
 let recording = document.getElementById('recording');
 let recordButton = document.getElementById('recordButton');
+let discardButton = document.getElementById('discardButton');
+let saveButton = document.getElementById('saveButton');
 let downloadButton = document.getElementById('downloadButton');
 let paragraphElement = document.getElementById('paragraph');
+let recordingSymbol = document.getElementById('recordingSymbol');
+const outputDiv = document.getElementById('output');
 
 let isRecording = false;
-let recordingTimeMS = 10000;
+let recordingTimeMS = 300000; // 5 minutes auto stop, need to fix stop recording button at the end of this timer
 let constraints = { video: true, audio: true };
 let recorder;
 let currentParagraphIndex = 0;
+
+// asr stuff
+// Create a SpeechRecognition object
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+// Set properties for the SpeechRecognition object
+recognition.lang = 'en-US'; // Set the language
+recognition.continuous = true; // Enable continuous speech recognition
+recognition.interimResults = true; // Enable interim results for live updates
+
+// Start/stop the recognition
+let isListening = false;
+let readWords = [];
+let globTime = new Date().getTime();
+for (let i = 0; i < 1000; i++) {
+    readWords.push(globTime + 1000000); // + 1000000
+}
+let highlightParagraph = (paragraph, currentWord, nonLowerCase) => {
+    let nonCase = nonLowerCase.split(' ');
+    let words = paragraph.split(' ');
+    let highlightedParagraph = '';
+    let count = 0;
+    let check = false;
+    let currTime = new Date().getTime();
+    for (let word of words) {
+        if ((word === currentWord || word === currentWord + '.' || word === currentWord + ',' || word === currentWord + '?') && readWords[count] + 2000 > currTime && check === false) {
+            console.log(nonCase[count], "non case")
+            highlightedParagraph += `<span class="highlighted-word">${nonCase[count]}</span> `;
+            readWords[count] = new Date().getTime(); // time when word was read
+            check = true;
+        } else {
+            highlightedParagraph += word + ' ';
+        }
+        count++;
+    }
+
+    return highlightedParagraph.trim();
+};
 
 let wait = (delayInMS) => {
     return new Promise((resolve) => setTimeout(resolve, delayInMS));
@@ -48,6 +90,7 @@ let recordStream = async (stream, lengthInMS) => {
 
     recorder.start();
     console.log(`recordStream(): Recording has Started`);
+    recordingSymbol.classList.remove('hidden');
 
     let stopped = new Promise((resolve, reject) => {
         recorder.onstop = resolve;
@@ -65,6 +108,7 @@ let recordStream = async (stream, lengthInMS) => {
 
 let stopRecorder = (recorderToStop) => {
     recorderToStop.stop();
+    recordingSymbol.classList.add('hidden');
 };
 
 let startRecording = async () => {
@@ -79,11 +123,10 @@ let startRecording = async () => {
 
         if (currentParagraphIndex < paragraphs.paragraphs.length) {
             paragraphElement.textContent = paragraphs.paragraphs[currentParagraphIndex];
+            currentParagraphIndex++;
         } else {
             paragraphElement.textContent = 'All paragraphs have been completed.';
         }
-
-        currentParagraphIndex++;
     } catch (error) {
         if (error.name === 'NotFoundError') {
             console.log(`Camera or Microphone not found. Can't Record`);
@@ -94,12 +137,47 @@ let startRecording = async () => {
 };
 
 let stopRecording = () => {
+    document.getElementsByClassName('hidden-buttons1')[0].style.display = 'none';
+    document.getElementsByClassName('hidden-buttons2')[0].style.display = 'block';
     stopRecorder(recorder);
+    console.log(readWords, "heheh");
 };
+
+// Handle the recognition result
+recognition.onresult = function (event) {
+    let interimTranscript = '';
+    let finalTranscript = '';
+
+    // Combine interim and final transcripts
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+        } else {
+            interimTranscript += transcript;
+        }
+    }
+
+    // Display live text
+    outputDiv.innerHTML = finalTranscript;
+    outputDiv.innerHTML += '<span style="color: gray;">' + interimTranscript + '</span>';
+    let spokenWord = interimTranscript.split(' ').pop().toLowerCase();
+    let paragraph = paragraphElement.textContent.toLowerCase();
+    console.log(spokenWord, "spoken word")
+    paragraphElement.innerHTML = highlightParagraph(paragraph, spokenWord, paragraphElement.textContent);
+}
+
+// Handle errors
+recognition.onerror = function (event) {
+    console.error('ASR error:', event.error);
+}
 
 window.addEventListener('load', async () => {
     try {
         await init();
+        paragraphElement.textContent = paragraphs.paragraphs[currentParagraphIndex];
+        currentParagraphIndex++;
+
         recordButton.addEventListener(
             'click',
             () => {
@@ -108,15 +186,45 @@ window.addEventListener('load', async () => {
                     console.log('recordButton(): Going to Start recording');
                     isRecording = true;
                     startRecording();
+                    // asr stuff
+                    recognition.start();
+                    isListening = true;
+                    startTime = Date.now();
+
                 } else {
                     recordButton.textContent = 'Start Recording';
                     console.log('recordButton(): Going to stop recording');
                     isRecording = false;
                     stopRecording();
+                    // asr stuff
+                    recognition.stop();
+                    isListening = false;
+
+
                 }
             },
             false
         );
+
+
+        discardButton.addEventListener(
+            'click',
+            () => {
+                document.getElementsByClassName('hidden-buttons1')[0].style.display = 'block';
+                document.getElementsByClassName('hidden-buttons2')[0].style.display = 'none';
+            },
+            false
+        );
+
+        saveButton.addEventListener(
+            'click',
+            () => {
+                document.getElementsByClassName('hidden-buttons1')[0].style.display = 'block';
+                document.getElementsByClassName('hidden-buttons2')[0].style.display = 'none';
+            },
+            false
+        );
+
     } catch (error) {
         console.log(`initialization error: ${error}`);
     }
