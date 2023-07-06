@@ -163,6 +163,7 @@ recognition.onresult = function (event) {
     outputDiv.innerHTML += '<span style="color: gray;">' + interimTranscript + '</span>';
     let spokenWord = interimTranscript.split(' ').pop().toLowerCase();
     let paragraph = paragraphElement.textContent.toLowerCase();
+    // console.log('spokenWord: ' + spokenWord);
     paragraphElement.innerHTML = highlightParagraph(paragraph, spokenWord, paragraphElement.textContent);
 }
 
