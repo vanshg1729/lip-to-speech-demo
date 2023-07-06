@@ -27,7 +27,6 @@ recognition.continuous = true; // Enable continuous speech recognition
 recognition.interimResults = true; // Enable interim results for live updates
 
 // Start/stop the recognition
-let isListening = false;
 let readWords = [];
 let globTime = new Date().getTime();
 for (let i = 0; i < 1000; i++) {
@@ -135,6 +134,10 @@ let startRecording = async () => { // this has the wrong naming
 };
 
 let stopRecording = () => {
+    globTime = new Date().getTime();
+    for (let i = 0; i < 1000; i++) {
+        readWords[i] = globTime + 100000000;
+    }
     document.getElementsByClassName('hidden-buttons1')[0].style.display = 'none';
     document.getElementsByClassName('hidden-buttons2')[0].style.display = 'block';
     stopRecorder(recorder);
@@ -184,7 +187,6 @@ window.addEventListener('load', async () => {
                     startRecording();
                     // asr stuff
                     recognition.start();
-                    isListening = true;
 
                 } else {
                     recordButton.textContent = 'Start Recording';
@@ -193,7 +195,6 @@ window.addEventListener('load', async () => {
                     stopRecording();
                     // asr stuff
                     recognition.stop();
-                    isListening = false;
                 }
             },
             false
