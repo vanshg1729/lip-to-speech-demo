@@ -1,24 +1,310 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>Enrollment Page</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-    </head>
-    <body>
-        <div class="left">
-            <button id="recordButton" class="button">Start Recording</button>
-            <h2 class="">Preview</h2>
-            <video id="preview" width="160" height="120" autoplay muted></video>
-        </div>
 
-        <div class="right">
-            <!-- <button id="stopButton" class="button">Stop Recording</button> -->
-            <h2>Recording</h2>
-            <video id="recording" width="160" height="120" controls></video>
-            <a id="downloadButton" class="button"> Download </a>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Enrollment Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.17/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('background.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            max-width: 1820px;
+        }
+
+        .enrollment-card {
+            background-color: #fff;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .top-section {
+            display: flex;
+            gap: 2rem;
+            width: 100%;
+        }
+
+        .bottom-section {
+            width: 100%;
+        }
+
+        .heading {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4f46e5;
+            text-align: center;
+        }
+
+        .preview-video,
+        .recording-video {
+            width: 100%;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .paragraph-box {
+            background-color: #f3f4f6;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .newClass {
+            display: flex;
+            justify-content: space-between;
+        }
+
+
+        .hidden-buttons2 {
+            display: none;
+        }
+
+        .recording-symbol {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: red;
+            animation: blink-animation 1s infinite;
+        }
+
+        @keyframes blink-animation {
+            0% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="enrollment-card">
+            <h1 class="heading mb-0">Enrollment Page</h1>
+            <p class="text-lg">
+                This page is to collect data for the model. You have to record yourself saying the below paragraphs,
+                and then you can proceed to the meet page.
+            </p>
+            <div class="top-section">
+                <div class="w-1/2">
+                    <h2 class="text-lg font-bold mb-2 newClass">
+                        <div>Preview</div>
+                        <div id="recordingSymbol" class="recording-symbol hidden"></div>
+                    </h2>
+                    <video id="preview" class="preview-video" autoplay muted></video>
+                </div>
+                <div class="w-1/2">
+                    <h2 class="text-lg font-bold mb-2">Recording</h2>
+                    <video id="recording" class="recording-video" controls></video>
+                    <a id="downloadButton" class="py-2 px-4 bg-green-500 text-white rounded-md mt-2 inline-block"
+                        download>Download</a>
+                </div>
+            </div>
+
+            <div class="bottom-section">
+                <h2 class="text-lg font-bold mb-2">Paragraph</h2>
+                <div class="paragraph-box">
+                    <p id="paragraph" class="text-gray-700 text-lg"></p>
+                </div>
+            </div>
+
+            <div class="flex justify-between mt-4 buttonClass">
+                <button id="recordButton" class="hidden-buttons1 py-2 px-4 bg-blue-500 text-white rounded-md mt-2">
+                    Start Recording
+                </button>
+                <div class="hidden-buttons2">
+                    <button id="discardButton" class="py-2 px-4 bg-red-400 text-white rounded-md mt-3">
+                        Discard
+                    </button>
+                    <button id="saveButton" class="py-2 px-4 bg-green-400 text-white rounded-md mt-3">
+                        Save
+                    </button>
+                </div>
+            </div>
+
+
         </div>
-    </body>
-    <script src="main.js"></script>
+    </div>
+
+    <script type="module">
+        import paragraphs from './paragraphs.json' assert { type: "json" };
+
+        let preview = document.getElementById('preview');
+        let recording = document.getElementById('recording');
+        let recordButton = document.getElementById('recordButton');
+        let discardButton = document.getElementById('discardButton');
+        let saveButton = document.getElementById('saveButton');
+        let downloadButton = document.getElementById('downloadButton');
+        let paragraphElement = document.getElementById('paragraph');
+        let recordingSymbol = document.getElementById('recordingSymbol');
+
+        let isRecording = false;
+        let recordingTimeMS = 300000; // 5 minutes auto stop, need to fix stop recording button at the end of this timer
+        let constraints = { video: true, audio: true };
+        let recorder;
+        let currentParagraphIndex = 0;
+
+
+        let wait = (delayInMS) => {
+            return new Promise((resolve) => setTimeout(resolve, delayInMS));
+        };
+
+        let init = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                preview.srcObject = stream;
+                downloadButton.href = stream;
+                preview.captureStream = preview.captureStream || preview.mozCaptureStream;
+
+                await new Promise((resolve) => {
+                    preview.onplaying = resolve;
+                });
+            } catch (error) {
+                if (error.name === 'NotFoundError') {
+                    console.log(`Camera or Microphone not found. Can't Record`);
+                } else {
+                    console.log(`init(): error: ${error}`);
+                }
+
+                throw error;
+            }
+        };
+
+        let recordStream = async (stream, lengthInMS) => {
+            recorder = new MediaRecorder(stream);
+            let data = [];
+
+            recorder.ondataavailable = (event) => {
+                data.push(event.data);
+            };
+
+            recorder.start();
+            console.log(`recordStream(): Recording has Started`);
+            recordingSymbol.classList.remove('hidden');
+
+            let stopped = new Promise((resolve, reject) => {
+                recorder.onstop = resolve;
+                recorder.onerror = (event) => reject(event.name);
+            });
+
+            let recorded = wait(lengthInMS).then(() => {
+                if (recorder.state === 'recording') {
+                    recorder.stop();
+                }
+            });
+
+            return Promise.race([stopped, recorded]).then(() => data);
+        };
+
+        let stopRecorder = (recorderToStop) => {
+            recorderToStop.stop();
+            recordingSymbol.classList.add('hidden');
+        };
+
+        let startRecording = async () => {
+            try {
+                let recordedChunks = await recordStream(preview.captureStream(), recordingTimeMS);
+                console.log(`startRecording(): Recording has stopped`);
+
+                let recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                recording.src = URL.createObjectURL(recordedBlob);
+                downloadButton.href = recording.src;
+                downloadButton.download = 'RecordedVideo.webm';
+
+                if (currentParagraphIndex < paragraphs.paragraphs.length) {
+                    paragraphElement.textContent = paragraphs.paragraphs[currentParagraphIndex];
+                    currentParagraphIndex++;
+                } else {
+                    paragraphElement.textContent = 'All paragraphs have been completed.';
+                }
+            } catch (error) {
+                if (error.name === 'NotFoundError') {
+                    console.log(`Camera or Microphone not found. Can't Record`);
+                } else {
+                    console.log(`StartButton(): error: ${error}`);
+                }
+            }
+        };
+
+        let stopRecording = () => {
+            document.getElementsByClassName('hidden-buttons1')[0].style.display = 'none';
+            document.getElementsByClassName('hidden-buttons2')[0].style.display = 'block';
+            stopRecorder(recorder);
+        };
+
+        window.addEventListener('load', async () => {
+            try {
+                await init();
+                paragraphElement.textContent = paragraphs.paragraphs[currentParagraphIndex];
+                currentParagraphIndex++;
+
+                recordButton.addEventListener(
+                    'click',
+                    () => {
+                        if (!isRecording) {
+                            recordButton.textContent = 'Stop Recording';
+                            console.log('recordButton(): Going to Start recording');
+                            isRecording = true;
+                            startRecording();
+                        } else {
+                            recordButton.textContent = 'Start Recording';
+                            console.log('recordButton(): Going to stop recording');
+                            isRecording = false;
+                            stopRecording();
+                        }
+                    },
+                    false
+                );
+
+                discardButton.addEventListener(
+                    'click',
+                    () => {
+                        document.getElementsByClassName('hidden-buttons1')[0].style.display = 'block';
+                        document.getElementsByClassName('hidden-buttons2')[0].style.display = 'none';
+                    },
+                    false
+                );
+
+                saveButton.addEventListener(
+                    'click',
+                    () => {
+                        document.getElementsByClassName('hidden-buttons1')[0].style.display = 'block';
+                        document.getElementsByClassName('hidden-buttons2')[0].style.display = 'none';
+                    },
+                    false
+                );
+                
+            } catch (error) {
+                console.log(`initialization error: ${error}`);
+            }
+        });
+    </script>
+
+</body>
+
 </html>
