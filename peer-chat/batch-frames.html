@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>Takeing Frames in Batch and Displaying</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+    <body>
+        <div>
+            <h2>Preview video</h2>
+            <video id="preview-video"></video>
+            <button id="bbox-button">Show Bounding Boxes</button>
+        </div>
+
+        <div>
+            <h2>Input Canvas</h2>
+            <h4 id="input-heading">Batch Number = 0</h4>
+            <canvas id="input-canvas"></canvas>
+        </div>
+
+        <div>
+            <h2>Output Canvas</h2>
+            <h4 id="output-heading">Batch Number = 0</h4>
+            <canvas id="output-canvas"></canvas>
+        </div>
+
+        <div>
+            <h2>Final output video</h2>
+            <video id="output-video"></video>
+        </div>
+    </body>
+    <script src="batch-frames.js"></script>
+</html>
