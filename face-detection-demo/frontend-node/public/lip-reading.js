@@ -7,6 +7,8 @@ let outputCanvas = document.getElementById('output-canvas')
 let inputHeading = document.getElementById('input-heading')
 let outputHeading = document.getElementById('output-heading')
 
+let modelOutput = document.getElementById('model-output')
+
 const width = 320 // We will scale the photo width to this
 let height = 0 // This will be computed based on the input stream
 
@@ -136,6 +138,12 @@ let displayFramesInBatch = async (canvasElement, batchData) => {
     const frames = batchData.frames
     const id = batchData.id
     outputHeading.textContent = `Batch Number = ${id}`
+    // displaying the model output if it is present
+    if ('sentence' in batchData) {
+        let sentence = batchData.sentence
+        modelOutput.textContent = `Sentence = ${sentence}`
+    }
+
     // console.log(
     //     `displayFramesInBatch(): id = ${batchData.id}, frames.length = ${frames.length}`
     // )
@@ -201,7 +209,7 @@ let sendBatchData = async (batchData) => {
     try {
         console.log(`sendBatchData(): id = ${batchData.id}`)
         const response = await fetch(
-            'http://localhost:5000/detect_faces_batch/',
+            'http://localhost:5000/lip_reading/',
             {
                 method: 'POST',
                 headers: {
