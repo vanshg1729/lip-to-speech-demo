@@ -36,10 +36,25 @@ checkpoint = torch.load(model_path)
 model.load_state_dict(checkpoint['model_state_dict'])
 model.to(device)
 
+def base64_to_image(base64_string):
+    """
+    Converts a base64 image string to a numpy image array
+    """
+    # Extract the base64 encoded binary data from the input string
+    base64_data = re.search(r'base64,(.*)', base64_string).group(1)
+    # Decode the base64 data to bytes
+    image_bytes = base64.b64decode(base64_data)
+    # convert the bytes to numpy array
+    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+    # Decode the numpy array as an image using OpenCV
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    return image
+
 def process_frame(images):
     # saves the file
     frames=[]
     for f in images:
+        numpy_image = base64_to_image(f)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=f)
         detection_result = detector.detect(mp_image)
         bbox=detection_result.detections[0].bounding_box
