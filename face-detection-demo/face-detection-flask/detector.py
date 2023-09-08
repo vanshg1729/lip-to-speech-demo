@@ -21,6 +21,18 @@ base_options = python.BaseOptions(model_asset_path=model_path)
 options = vision.FaceDetectorOptions(base_options=base_options)
 detector = vision.FaceDetector.create_from_options(options)
 
+def get_frames_from_batchdata(batchdata):
+    framedata = batchdata.get("frames")
+    frames = []
+
+    for data in framedata:
+        dataurl = data.get("url")
+        frame = base64_to_image(dataurl)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frames.append(frame)
+    
+    return frames
+
 
 def base64_to_image(base64_string):
     """
@@ -164,7 +176,7 @@ def detect_faces_from_batchdata(batchdata):
     frames = batchdata.get('frames', None)
     if frames == None:
         print('frames is None')
-        return frames
+        return batchdata
     
     for i, framedata in enumerate(frames):
         framedata = detect_faces_from_framedata(framedata)

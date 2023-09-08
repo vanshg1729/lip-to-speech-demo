@@ -9,7 +9,9 @@ from lipnetmodel import lipnet_model
 import os
 import pickle
 
+import re
 
+import numpy as np
 
 file_name = 'vocab_dict.pkl'
 
@@ -25,36 +27,20 @@ options = vision.FaceDetectorOptions(base_options=base_options,min_detection_con
 detector = vision.FaceDetector.create_from_options(options)
 
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model_path="/ssd_scratch/cvit/souvikg544/checkpoints_lipnet/exp6_big/model_179.pth"
+model_path="./model_179.pth"
 num_classes=52
 model = lipnet_model(num_classes)
 
-checkpoint = torch.load(model_path)
+checkpoint = torch.load(model_path, map_location=device)
 model.load_state_dict(checkpoint['model_state_dict'])
 model.to(device)
-
-def base64_to_image(base64_string):
-    """
-    Converts a base64 image string to a numpy image array
-    """
-    # Extract the base64 encoded binary data from the input string
-    base64_data = re.search(r'base64,(.*)', base64_string).group(1)
-    # Decode the base64 data to bytes
-    image_bytes = base64.b64decode(base64_data)
-    # convert the bytes to numpy array
-    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-    # Decode the numpy array as an image using OpenCV
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-    return image
 
 def process_frame(images):
     # saves the file
     frames=[]
     for f in images:
-        numpy_image = base64_to_image(f)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=f)
         detection_result = detector.detect(mp_image)
         bbox=detection_result.detections[0].bounding_box
@@ -81,7 +67,7 @@ def inference(batch_frames):
     pred=model.forward(batch_frames)
     softmax=nn.Softmax(dim=1)
     pred=softmax(pred)
-    print(pred)
+    # print(pred)
     predicted_labels = torch.argmax(pred, dim=2)
     pred_words=[list(word_label_dict.keys())[list(word_label_dict.values()).index(x)] for x in predicted_labels[0]]
     #print(pred_words)

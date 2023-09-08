@@ -5,10 +5,15 @@ import matplotlib.pyplot as plt
 import copy
 import pickle
 
+from utils import add_text_batchdata
+
 from detector import detect_faces_from_dataurl, detect_faces_from_framedata
+from detector import get_frames_from_batchdata
 from detector import detect_faces_from_batchdata
 from detector import numpy_array_to_dataurl
 from detector import base64_to_image, image_to_base64
+
+from flask_funcs import process_frame, inference
 
 app = Flask(__name__)
 CORS(app)
@@ -122,9 +127,26 @@ def detect_faces_batch():
         print("data is none")
         return None
 
-    with open("frames_data.pkl", "wb") as f:
-        pickle.dump(batchdata, f)
-        print("Wrote data to file frames_data.pkl")
-
     batchdata = detect_faces_from_batchdata(batchdata)
+    return batchdata
+
+@app.post("/lip_reading/")
+def read_lips():
+    print("inside read_lips() function")
+
+    # getting the json data from the request
+    batchdata = request.get_json()
+
+    if batchdata == None:
+        print("data is none")
+        return None
+
+    # preparing the data for model inference
+    frames = get_frames_from_batchdata(batchdata)
+    frames_tensor = process_frame(frames)
+
+    sentence = inference(frames_tensor)
+    batchdata["sentence"] = sentence
+    batchdata = add_text_batchdata(batchdata, sentence)
+
     return batchdata
