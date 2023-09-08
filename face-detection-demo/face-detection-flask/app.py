@@ -3,6 +3,7 @@ from flask_cors import CORS
 from markupsafe import escape
 import matplotlib.pyplot as plt
 import copy
+import pickle
 
 from detector import detect_faces_from_dataurl, detect_faces_from_framedata
 from detector import detect_faces_from_batchdata
@@ -120,6 +121,10 @@ def detect_faces_batch():
     if batchdata == None:
         print("data is none")
         return None
+
+    with open("frames_data.pkl", "wb") as f:
+        pickle.dump(batchdata, f)
+        print("Wrote data to file frames_data.pkl")
 
     batchdata = detect_faces_from_batchdata(batchdata)
     return batchdata
