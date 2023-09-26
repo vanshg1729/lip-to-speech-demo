@@ -3,6 +3,7 @@ from detector import base64_to_image, image_to_base64
 from PIL import Image, ImageDraw, ImageFont
 
 def draw_text_np_image(img, sentence, coordinates=(0, 0), color=(255, 255, 255)):
+    # https://stackoverflow.com/questions/16373425/add-text-on-image-using-pil
     img_pil = Image.fromarray(img)
     # create the draw object from the pil image
     draw = ImageDraw.Draw(img_pil)
@@ -27,7 +28,7 @@ def add_text_batchdata(batchdata, sentence):
 
         # drawing the text on the image
         img_np = base64_to_image(dataurl)
-        img_np = draw_text_np_image(img_np, sentence, coordinates=(100, 220))
+        img_np = draw_text_np_image(img_np, sentence, coordinates=(100, 170))
         # converting numpy image back to dataurl
         dataurl = image_to_base64(img_np)
 

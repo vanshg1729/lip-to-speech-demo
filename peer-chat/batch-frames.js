@@ -27,7 +27,7 @@ let frameId = 0
 let batchId = 0
 
 // delay in MS for capturing each frame
-const delay = 30
+const delay = 10
 
 // frames captured in one batch
 const framesPerBatch = 75
