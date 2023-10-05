@@ -147,6 +147,8 @@ def read_lips():
 
     sentence = inference(frames_tensor)
     batchdata["sentence"] = sentence
+    print(sentence)
+    print()
     batchdata = add_text_batchdata(batchdata, sentence)
 
     return batchdata

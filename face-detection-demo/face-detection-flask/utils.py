@@ -28,7 +28,7 @@ def add_text_batchdata(batchdata, sentence):
 
         # drawing the text on the image
         img_np = base64_to_image(dataurl)
-        img_np = draw_text_np_image(img_np, sentence, coordinates=(100, 170))
+        img_np = draw_text_np_image(img_np, sentence, coordinates=(100, 20))
         # converting numpy image back to dataurl
         dataurl = image_to_base64(img_np)
 
